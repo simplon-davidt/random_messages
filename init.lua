@@ -14,7 +14,7 @@ random_messages.options = {} 	-- Options defined in config.lua stored in this ta
 random_messages.messages = {} 	-- This table contains all messages.
 
 -- Read config file
-dofile(core.get_modpath(modname).."/config.lua")
+dofile(minetest.get_modpath(modname).."/config.lua")
 
 --Time between two subsequent messages.
 -- 0 to use default (120)
@@ -71,7 +71,7 @@ function random_messages.read_messages()
 	-- no input file found (in the world folder)
 	if not input then
 		-- look a localized default file in (in the mod folder)
-		local default_input = io.open(core.get_modpath(modname)..'/'..default_messages_file_name..'.'..LANG..'.txt',"r")
+		local default_input = io.open(minetest.get_modpath(modname)..'/'..default_messages_file_name..'.'..LANG..'.txt',"r")
 		local output = io.open(minetest.get_worldpath()..'/'..modname,"w")
 		if not default_input then
 			-- localised file not found, look for a generic default file (in the mod folder)
@@ -199,8 +199,8 @@ if place_messages_signs then
 
 	-- Register cubic sign node if no yard sign
 	if minetest.get_modpath("default") 
-	 and ( not minetest.get_modpath("signs_lib"))
-	 and ( not minetest.get_modpath("signs")) 	
+	 and minetest.get_modpath("signs_lib") == nil
+	 and minetest.get_modpath("signs") == nil 	
 	 then
 		minetest.register_node(modname..":sign_yard", {
 			paramtype = "light",
@@ -218,7 +218,7 @@ if place_messages_signs then
 				type = "fixed",
 				fixed = {-0.4375, -0.5, -0.0625, 0.4375, 0.375, 0}
 			},
-			tiles = {"signs_top.png", "signs_bottom.png", "signs_side.png", "signs_side.png", "signs_back.png", "signs_front.png"},
+			tiles = {"rm_signs_top.png", "rm_signs_bottom.png", "rm_signs_side.png", "rm_signs_side.png", "rm_signs_back.png", "rm_signs_front.png"},
 			groups = {choppy=2, dig_immediate=2},
 			drop = 'default:sign_wall_wood',
 		})
@@ -273,6 +273,7 @@ if place_messages_signs then
 				local sign_pos = {x=pos.x,y=ground+1, z=pos.z}
 				local nn = minetest.get_node(sign_pos).name	-- sign node name (before it becomes a sign)
 				if nn == "air" then
+					
 					-- Replace plants and other buildable to nodes instead of placing on it
 					local under = minetest.get_node({x=pos.x, y=ground, z=pos.z}).name
 					local under_def = minetest.registered_nodes[under] 
@@ -287,8 +288,11 @@ if place_messages_signs then
 					if msg then
 						-- Define the rest of the sign
 						local sign = {}
-						-- -- Name
-						sign.name = ":signs:sign_yard"		
+						-- -- Name0
+						if minetest.registered_nodes["signs:sign_yard"] then
+							sign.name = "signs:sign_yard"		
+						else sign.name = modname..":sign_yard"	
+						end
 						-- -- Facedir
 						-- find possible faces
 						local xp, xm, zp, zm
