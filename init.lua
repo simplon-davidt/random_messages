@@ -10,7 +10,7 @@ local modname = minetest.get_current_modname()
 math.randomseed(os.time())
 
 random_messages = {}
-random_messages.options = {} 	-- Options are stored in this table
+random_messages.options = {} 	-- Options defined in config.lua stored in this table
 random_messages.messages = {} 	-- This table contains all messages.
 
 -- Read config file
@@ -199,17 +199,31 @@ if place_messages_signs then
 
 	-- Register cubic sign node if no yard sign
 	if minetest.get_modpath("default") 
-	and ( not minetest.get_modpath("signs_lib"))
-	and ( not minetest.get_modpath("signs")) 	
-	then
-		minetest.register_node(modname..":sign", {
-			description = "Informative Sign",
-			tiles = {"default_wood.png^default_sign_wood.png"},
-			is_ground_content = true,
-			groups = {choppy = 2, flammable = 2, oddly_breakable_by_hand = 3},
+	 and ( not minetest.get_modpath("signs_lib"))
+	 and ( not minetest.get_modpath("signs")) 	
+	 then
+		minetest.register_node(modname..":sign_yard", {
+			paramtype = "light",
+			sunlight_propagates = true,
+			paramtype2 = "facedir",
+			drawtype = "nodebox",
+			node_box = {
+				type = "fixed",
+				fixed = {
+						{-0.4375, -0.25, -0.0625, 0.4375, 0.375, 0},
+						{-0.0625, -0.5, -0.0625, 0.0625, -0.1875, 0},
+				}
+			},
+			selection_box = {
+				type = "fixed",
+				fixed = {-0.4375, -0.5, -0.0625, 0.4375, 0.375, 0}
+			},
+			tiles = {"signs_top.png", "signs_bottom.png", "signs_side.png", "signs_side.png", "signs_back.png", "signs_front.png"},
+			groups = {choppy=2, dig_immediate=2},
 			drop = 'default:sign_wall_wood',
-			sounds = default.node_sound_wood_defaults(),
-			})
+		})
+
+		minetest.register_alias(":signs:sign_yard", modname..":sign_yard")
 	end
 
 
@@ -233,15 +247,15 @@ if place_messages_signs then
 		local y_max = math.min(maxp.y, height_max)
 		for i=1, signs_per_chunk do
 			local pos = {x=math.random(minp.x,maxp.x),z=math.random(minp.z,maxp.z), y=minp.y}
-			local env = minetest.env
 
-			 -- Find ground level
+			 -- Find ground level (look for air or liquid above something else)
 			local ground = nil
 			local top = y_max	
-			if env:get_node({x=pos.x,y=y_max,z=pos.z}).name ~= "air" and env:get_node({x=pos.x,y=y_max,z=pos.z}).name ~= "default:water_source" and env:get_node({x=pos.x,y=y_max,z=pos.z}).name ~= "default:lava_source" then
+			local top_node = minetest.get_node({x=pos.x,y=y_max,z=pos.z})
+			if top_node.name ~= "air" and minetest.get_node_group(top_node.name, "liquid") < 1 then
 				for y=y_max,y_min,-1 do
 					local p = {x=pos.x,y=y,z=pos.z}
-					if env:get_node(p).name == "air" or env:get_node(p).name == "default:water_source" or env:get_node(p) == "default:lava_source" then
+					if minetest.get_node(p).name == "air" or minetest.get_node_group(minetest.get_node(p).name, "liquid") > 0 then
 						top = y
 						break
 					end
@@ -249,12 +263,13 @@ if place_messages_signs then
 			end
 			for y=top,y_min,-1 do
 				local p = {x=pos.x,y=y,z=pos.z}
-				if env:get_node(p).name ~= "air" and env:get_node(p).name ~= "default:water_source" and env:get_node(p).name ~= "default:lava_source" then
+				if minetest.get_node(p).name ~= "air" and minetest.get_node_group(top_node.name, "liquid") < 1 then
 					ground = y
 					break
 				end
 			end
 			if(ground~=nil) then
+				-- If ground found, continue only if its air (not liquids)
 				local sign_pos = {x=pos.x,y=ground+1, z=pos.z}
 				local nn = minetest.get_node(sign_pos).name	-- sign node name (before it becomes a sign)
 				if nn == "air" then
@@ -272,12 +287,9 @@ if place_messages_signs then
 					if msg then
 						-- Define the rest of the sign
 						local sign = {}
-						if minetest.get_modpath("signs_lib") or	minetest.get_modpath("signs") then
-							sign.name = "signs:sign_yard"		
-						else
-							sign.name = modname..":sign"
-						end
-						-- secondly: rotate the chest
+						-- -- Name
+						sign.name = ":signs:sign_yard"		
+						-- -- Facedir
 						-- find possible faces
 						local xp, xm, zp, zm
 						xp = minetest.get_node({x=pos.x+1,y=ground+1, z=pos.z})
