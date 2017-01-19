@@ -228,7 +228,7 @@ if place_messages_signs then
 
 
 	minetest.register_on_generated(function(minp, maxp, seed)
-		-- get the water level and convert it to a number
+		-- Get the water level and convert it to a number
 		local water_level = minetest.setting_get("water_level")
 		if water_level == nil or type(water_level) ~= "number" then
 			water_level = 1
@@ -268,20 +268,23 @@ if place_messages_signs then
 					break
 				end
 			end
+			
 			if(ground~=nil) then
-				-- If ground found, continue only if its air (not liquids)
 				local sign_pos = {x=pos.x,y=ground+1, z=pos.z}
 				local nn = minetest.get_node(sign_pos).name	-- sign node name (before it becomes a sign)
+	
+				-- Replace plants and other buildable to nodes instead of placing on it
+				local under = minetest.get_node({x=pos.x, y=ground, z=pos.z}).name
+				local under_def = minetest.registered_nodes[under] 
+				if under_def and under_def.buildable_to then
+					ground = ground - 1
+					sign_pos = {x=pos.x,y=ground+1, z=pos.z}
+					nn = minetest.get_node(sign_pos).name
+				end
+
+				-- Continue only if its air (not liquids)
 				if nn == "air" then
 					
-					-- Replace plants and other buildable to nodes instead of placing on it
-					local under = minetest.get_node({x=pos.x, y=ground, z=pos.z}).name
-					local under_def = minetest.registered_nodes[under] 
-					if under_def and under_def.buildable_to then
-						ground = ground - 1
-						sign_pos = {x=pos.x,y=ground+1, z=pos.z}
-						nn = minetest.get_node(sign_pos).name
-					end
 					-- Define message to display
 					local message_number = table.random(random_messages.messages)
 					local msg = random_messages.messages[message_number] or message_number
