@@ -29,7 +29,7 @@ if minetest.get_modpath("default")
 		},
 		tiles = {"rm_signs_top.png", "rm_signs_bottom.png", "rm_signs_side.png", "rm_signs_side.png", "rm_signs_back.png", "rm_signs_front.png"},
 		groups = {choppy=2, dig_immediate=2},
-		-- drop = 'default:sign_wall_wood',
+		drop = 'default:sign_wall_wood',
 	})
 
 	minetest.register_alias(":signs:sign_yard", modname..":sign_yard")
