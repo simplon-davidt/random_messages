@@ -11,6 +11,16 @@ if minetest.get_modpath("default")
  and minetest.get_modpath("signs_lib") == nil
  and minetest.get_modpath("signs") == nil 	
  then
+	local defsign = minetest.registered_nodes["default:sign_wall_wood"]
+	local y_on_construct, y_on_receive_fields, y_sounds, y_groups
+	if defsign then	
+		y_on_construct = defsign.on_construct
+		y_on_receive_fields = defsign.on_receive_fields
+		y_sound = defsign.sound
+		y_groups = defsign.groups
+	end	
+	
+	-- New Yard Sign
 	minetest.register_node(modname..":sign_yard", {
 		paramtype = "light",
 		sunlight_propagates = true,
@@ -28,11 +38,24 @@ if minetest.get_modpath("default")
 			fixed = {-0.4375, -0.5, -0.0625, 0.4375, 0.375, 0}
 		},
 		tiles = {"rm_signs_top.png", "rm_signs_bottom.png", "rm_signs_side.png", "rm_signs_side.png", "rm_signs_back.png", "rm_signs_front.png"},
-		groups = {choppy=2, dig_immediate=2},
-		drop = 'default:sign_wall_wood',
+		inventory_image = "rm_signs_front.png",
+		wield_image = "rm_signs_front.png",
+		groups = y_groups or {choppy = 2, attached_node = 1, flammable = 2, oddly_breakable_by_hand = 3},
+		sound = y_sound,
+		on_construct = y_on_construct,
+		on_receive_fields = y_on_receive_fields,
 	})
-
-	minetest.register_alias(":signs:sign_yard", modname..":sign_yard")
+	
+	-- Recipe
+	minetest.register_craft({
+		output = modname..':sign_yard',
+		recipe = {
+			{'default:sign_wall_wood'},
+			{'group:stick'},
+		}
+	})
+	
+	minetest.register_alias(":signs:sign_yard", modname..':sign_yard')
 end
 
 
