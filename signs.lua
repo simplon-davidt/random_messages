@@ -1,4 +1,4 @@
--- Most of the code was adapted from tsm_chests_exemple 
+local modname = minetest.get_current_modname()
 	
 -- Height limits to place the signs
 local h_min = random_messages.options.signs.h_min or -200
@@ -29,7 +29,7 @@ if minetest.get_modpath("default")
 		},
 		tiles = {"rm_signs_top.png", "rm_signs_bottom.png", "rm_signs_side.png", "rm_signs_side.png", "rm_signs_back.png", "rm_signs_front.png"},
 		groups = {choppy=2, dig_immediate=2},
-		drop = 'default:sign_wall_wood',
+		-- drop = 'default:sign_wall_wood',
 	})
 
 	minetest.register_alias(":signs:sign_yard", modname..":sign_yard")
@@ -50,6 +50,8 @@ minetest.register_on_generated(function(minp, maxp, seed)
 	-- Return if number picked is higher than chance percent
 	if ( math.random(0,100) > cpc ) then return end
 			
+
+	-- Most of the following code was adapted from tsm_chests_exemple 
 		
 	-- Get the water level and convert it to a number
 	local water_level = minetest.setting_get("water_level")
