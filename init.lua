@@ -7,9 +7,18 @@ xisd : 14/01/2017
 
 local modname = minetest.get_current_modname()
 
+-- Intllib.
+local S
+if minetest.get_modpath("intllib") then
+	S = intllib.Getter()
+else
+	S = function(s) return s end
+end
+
 math.randomseed(os.time())
 
 random_messages = {}
+random_messages.intllib = S		-- Intllib
 random_messages.options = {} 	-- Options defined in config.lua stored in this table
 random_messages.messages = {} 	-- This table contains all messages.
 

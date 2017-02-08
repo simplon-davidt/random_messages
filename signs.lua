@@ -1,4 +1,7 @@
 local modname = minetest.get_current_modname()
+
+local S = random_messages.intllib
+
 	
 -- Height limits to place the signs
 local h_min = random_messages.options.signs.h_min or -200
@@ -29,7 +32,7 @@ if minetest.get_modpath("default")
 	
 	-- New Yard Sign
 	minetest.register_node(modname..":sign_yard", {
-		description = "Yard Sign"
+		description = S("Yard Sign"),
 		paramtype = "light",
 		sunlight_propagates = true,
 		paramtype2 = "facedir",

@@ -56,11 +56,11 @@ random_messages.options.signs = {
 		-- Increase this value will to see more signs in the world
 		signs_per_chunk= 1,
 
-		-- True / False : Should signs with messages randomly appear in the world
+		-- True / False : Should signs with messages randomly appear in already generated area
 		use_signs_abm = true,
 		
 		-- Abm settings
-		signs_abm_interval	 = 3600, 	-- Run every 1200 seconds
+		signs_abm_interval	 = 3600, 	-- Run every 3600 seconds
 		signs_abm_chance	 = 800, 	-- Select every 1 in 800 nodes
 		
 		-- Limit number of signs in area	
