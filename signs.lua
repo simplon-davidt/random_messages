@@ -217,7 +217,7 @@ end)
 -- Place signs in already generated areas
 --
 if random_messages.options.signs.use_signs_abm then
-	minetest.register_abm{
+	minetest.register_abm({
 		nodenames = node_under_int,
 		interval = random_messages.options.signs.signs_abm_interval or 1200,
 		chance = random_messages.options.signs.signs_abm_chance or 150,
@@ -233,17 +233,16 @@ if random_messages.options.signs.use_signs_abm then
 				else sign_name = modname..":sign_yard"	
 				end
 				-- Get signs number limit 
-				local limit = signs_number_limit or 1
-				local signs_around = minetest.find_nodes_in_area(
-														{x=pos.x-10,y=pos.y-10, z=pos.z-10},
-														{x=pos.x+10,y=pos.y+10, z=pos.z+10},
-														sign_name )
-				print('Signs around : '..dump(signs_around))
+				local limit = random_messages.options.signs.signs_number_limit or 1
+				local r = random_messages.options.signs.signs_limit_radius or 25
+				local minp = {x=pos.x-r,y=pos.y-r, z=pos.z-r}
+				local maxp = {x=pos.x+r,y=pos.y+r, z=pos.z+r}
+				local signs_around = minetest.find_nodes_in_area(minp,maxp,sign_name)
 				if signs_around and #signs_around < limit then 
 					place_sign(pos)
 				end
 			end
 		end,
-	}
+	})
 end
 

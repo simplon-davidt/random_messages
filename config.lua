@@ -58,8 +58,14 @@ random_messages.options.signs = {
 
 		-- True / False : Should signs with messages randomly appear in the world
 		use_signs_abm = true,
+		
 		-- Abm settings
-		signs_abm_interval	 = 1200, 	-- Run every 1200 seconds
-		signs_abm_chance	 = 150, 	-- Select every 1 in 800 nodes
-		signs_number_limit   = 1,		-- Signs won't be placed if there is more that 1 signs in a 10 nodes radius	
+		signs_abm_interval	 = 3600, 	-- Run every 1200 seconds
+		signs_abm_chance	 = 800, 	-- Select every 1 in 800 nodes
+		
+		-- Limit number of signs in area	
+		signs_number_limit   = 1,	-- if there is already 1 signs		
+		signs_limit_radius	 = 25,	-- in a 25 nodes radius
+									-- then new sign will not be placed
 	}
+	
