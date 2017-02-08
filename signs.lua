@@ -5,8 +5,15 @@ local h_min = random_messages.options.signs.h_min or -200
 local h_max = random_messages.options.signs.h_max or 200
 local signs_per_chunk = random_messages.options.signs.signs_per_chunk or 1
 
+-- Build nodes list  
+local node_under_int	= random_messages.options.signs.node_under_list
+local node_under_bool	= nil
+if node_under_int and #node_under_int > 0 then
+	node_under_bool = {}
+	for _,name in ipairs(node_under_int) do node_under_bool[name] = true end
+end
 
-	-- Register cubic sign node if no yard sign
+-- Register yard sign node if no yard sign
 if minetest.get_modpath("default") 
  and minetest.get_modpath("signs_lib") == nil
  and minetest.get_modpath("signs") == nil 	
@@ -59,6 +66,61 @@ if minetest.get_modpath("default")
 end
 
 
+function place_sign(pos)
+	-- Define message to display
+	local message_number = table.random(random_messages.messages)
+	local msg = random_messages.messages[message_number] or message_number
+	if not msg then return end
+			
+	-- Define the rest of the sign
+	local sign = {}
+	-- -- Name
+	if minetest.registered_nodes["signs:sign_yard"] then
+		sign.name = "signs:sign_yard"		
+	else sign.name = modname..":sign_yard"	
+	end
+	-- -- Facedir
+	-- find possible faces
+	local xp, xm, zp, zm
+	xp = minetest.get_node({x=pos.x+1,y=pos.y, z=pos.z})
+	xm = minetest.get_node({x=pos.x-1,y=pos.y, z=pos.z})
+	zp = minetest.get_node({x=pos.x,y=pos.y, z=pos.z+1})
+	zm = minetest.get_node({x=pos.x,y=pos.y, z=pos.z-1})
+
+	local facedirs = {}
+	if(xp.name=="air" or xp.name=="default:water_source") then
+		table.insert(facedirs, minetest.dir_to_facedir({x=-1,y=0,z=0}))
+	end
+	if(xm.name=="air" or xm.name=="default:water_source") then
+		table.insert(facedirs, minetest.dir_to_facedir({x=1,y=0,z=0}))
+	end
+	if(zp.name=="air" or zp.name=="default:water_source") then
+		table.insert(facedirs, minetest.dir_to_facedir({x=0,y=0,z=-1}))
+	end
+	if(zm.name=="air" or zm.name=="default:water_source") then
+		table.insert(facedirs, minetest.dir_to_facedir({x=0,y=0,z=1}))
+	end
+						
+	-- choose a random face (if possible)
+	if(#facedirs == 0) then
+		minetest.set_node({x=pos.x,y=pos.y, z=pos.z+1},{name='air'})
+		sign.param2 = minetest.dir_to_facedir({x=0,y=0,z=1})
+	else
+		sign.param2 = facedirs[math.floor(math.random(#facedirs))]
+	end
+								
+	-- Lastly: place the sign
+	minetest.set_node(pos,sign)
+	local meta = minetest.get_meta(pos)
+	meta:set_string("text",msg)
+	meta:set_string("infotext",msg) 
+
+end 
+
+
+--
+-- Place signs when generating the area
+--
 minetest.register_on_generated(function(minp, maxp, seed)
 		
 	-- How many chances signs haves to appear in this chunk
@@ -124,65 +186,64 @@ minetest.register_on_generated(function(minp, maxp, seed)
 			-- Return if node isn't air
 			 if nn ~= "air" then return end
 		
-			-- Replace plants and other buildable to nodes instead of placing on it
+			-- Get node under
 			local under = minetest.get_node({x=pos.x, y=ground, z=pos.z}).name
 			local under_def = minetest.registered_nodes[under] 
+			
+			-- Replace plants and other buildable to nodes instead of placing on it
 			if under_def and under_def.buildable_to then
 				ground = ground - 1
 				sign_pos = {x=pos.x,y=ground+1, z=pos.z}
 				nn = minetest.get_node(sign_pos).name
+				under = minetest.get_node({x=pos.x, y=ground, z=pos.z}).name
 			end
 			
+			-- Return if building on something else that nodes listed if config list
+			if node_under_bool then -- if array is not declared continue without testing
+				if not node_under_bool[under] then return end		
+			end
 			-- Return if building in water
 			if minetest.get_node_group(nn, "liquid") > 1 then return end
+		
+			-- Place the sign 
+			place_sign(sign_pos)
 			
-			-- Define message to display
-			local message_number = table.random(random_messages.messages)
-			local msg = random_messages.messages[message_number] or message_number
-			if msg then
-				-- Define the rest of the sign
-				local sign = {}
-				-- -- Name0
-				if minetest.registered_nodes["signs:sign_yard"] then
-					sign.name = "signs:sign_yard"		
-				else sign.name = modname..":sign_yard"	
-				end
-				-- -- Facedir
-				-- find possible faces
-				local xp, xm, zp, zm
-				xp = minetest.get_node({x=pos.x+1,y=ground+1, z=pos.z})
-				xm = minetest.get_node({x=pos.x-1,y=ground+1, z=pos.z})
-				zp = minetest.get_node({x=pos.x,y=ground+1, z=pos.z+1})
-				zm = minetest.get_node({x=pos.x,y=ground+1, z=pos.z-1})
-
-				local facedirs = {}
-				if(xp.name=="air" or xp.name=="default:water_source") then
-					table.insert(facedirs, minetest.dir_to_facedir({x=-1,y=0,z=0}))
-				end
-				if(xm.name=="air" or xm.name=="default:water_source") then
-					table.insert(facedirs, minetest.dir_to_facedir({x=1,y=0,z=0}))
-				end
-				if(zp.name=="air" or zp.name=="default:water_source") then
-					table.insert(facedirs, minetest.dir_to_facedir({x=0,y=0,z=-1}))
-				end
-				if(zm.name=="air" or zm.name=="default:water_source") then
-					table.insert(facedirs, minetest.dir_to_facedir({x=0,y=0,z=1}))
-				end
-						
-				-- choose a random face (if possible)
-				if(#facedirs == 0) then
-					minetest.set_node({x=pos.x,y=ground+1, z=pos.z+1},{name=nn})
-					sign.param2 = minetest.dir_to_facedir({x=0,y=0,z=1})
-				else
-					sign.param2 = facedirs[math.floor(math.random(#facedirs))]
-				end
-								
-				-- Lastly: place the sign
-				minetest.set_node(sign_pos,sign)
-				local meta = minetest.get_meta(sign_pos)
-				meta:set_string("text",msg)
-				meta:set_string("infotext",msg) 
-			end
 		end	
 	end		
 end)
+
+
+--
+-- Place signs in already generated areas
+--
+if random_messages.options.signs.use_signs_abm then
+	minetest.register_abm{
+		nodenames = node_under_int,
+		interval = random_messages.options.signs.signs_abm_interval or 1200,
+		chance = random_messages.options.signs.signs_abm_chance or 150,
+		action = function(pos)
+			-- Sign pos
+			pos.y=pos.y+1
+			-- Place only in surface
+			if minetest.get_node(pos).name == 'air' then
+				-- Get sign name
+				local sign_name
+				if minetest.registered_nodes["signs:sign_yard"] then
+					sign_name = "signs:sign_yard"		
+				else sign_name = modname..":sign_yard"	
+				end
+				-- Get signs number limit 
+				local limit = signs_number_limit or 1
+				local signs_around = minetest.find_nodes_in_area(
+														{x=pos.x-10,y=pos.y-10, z=pos.z-10},
+														{x=pos.x+10,y=pos.y+10, z=pos.z+10},
+														sign_name )
+				print('Signs around : '..dump(signs_around))
+				if signs_around and #signs_around < limit then 
+					place_sign(pos)
+				end
+			end
+		end,
+	}
+end
+
