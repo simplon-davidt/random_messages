@@ -29,6 +29,7 @@ if minetest.get_modpath("default")
 	
 	-- New Yard Sign
 	minetest.register_node(modname..":sign_yard", {
+		description = "Yard Sign"
 		paramtype = "light",
 		sunlight_propagates = true,
 		paramtype2 = "facedir",
