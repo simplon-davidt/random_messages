@@ -59,7 +59,8 @@ random_messages.options.signs = {
 		-- True / False : Should signs with messages randomly appear in already generated area
 		use_signs_abm = true,
 		
-		-- Abm settings
+		-- Place signs abm settings 
+		-- Update signs values are fractions of thoses : interval/4 and chance/10
 		signs_abm_interval	 = 3600, 	-- Run every 3600 seconds
 		signs_abm_chance	 = 800, 	-- Select every 1 in 800 nodes
 		
@@ -67,5 +68,9 @@ random_messages.options.signs = {
 		signs_number_limit   = 1,	-- if there is already 1 signs		
 		signs_limit_radius	 = 25,	-- in a 25 nodes radius
 									-- then new sign will not be placed
+		
+		-- Chance to delete a sign when updating it 
+		-- Number will be use a fracion of 1 ( 1/number ) OR a number beween 0 and 1
+		abm_delete_signs_chance = 0.3 		-- 30%							
 	}
 	

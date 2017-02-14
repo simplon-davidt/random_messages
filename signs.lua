@@ -118,6 +118,7 @@ function place_sign(pos)
 	local meta = minetest.get_meta(pos)
 	meta:set_string("text",msg)
 	meta:set_string("infotext",msg) 
+	meta:set_int("random_messages",1) 
 
 end 
 
@@ -220,7 +221,18 @@ end)
 --
 -- Place signs in already generated areas
 --
+
 if random_messages.options.signs.use_signs_abm then
+	-- Get sign name
+	local sign_name
+	if minetest.registered_nodes["signs:sign_yard"] then
+		sign_name = "signs:sign_yard"		
+	else sign_name = modname..":sign_yard"	
+	end
+	
+	--
+	-- Place new signs abm
+	--
 	minetest.register_abm({
 		nodenames = node_under_int,
 		interval = random_messages.options.signs.signs_abm_interval or 1200,
@@ -230,12 +242,6 @@ if random_messages.options.signs.use_signs_abm then
 			pos.y=pos.y+1
 			-- Place only in surface
 			if minetest.get_node(pos).name == 'air' then
-				-- Get sign name
-				local sign_name
-				if minetest.registered_nodes["signs:sign_yard"] then
-					sign_name = "signs:sign_yard"		
-				else sign_name = modname..":sign_yard"	
-				end
 				-- Get signs number limit 
 				local limit = random_messages.options.signs.signs_number_limit or 1
 				local r = random_messages.options.signs.signs_limit_radius or 25
@@ -248,5 +254,47 @@ if random_messages.options.signs.use_signs_abm then
 			end
 		end,
 	})
+	
+	--
+	-- Already placed signs abm
+	--
+	minetest.register_abm({
+		nodenames = sign_name,
+		interval = (0.25*random_messages.options.signs.signs_abm_interval) or 300,
+		chance = (0.1*random_messages.options.signs.signs_abm_chance) or 15,
+		action = function(pos)
+			-- Get meta
+			local meta = minetest.get_meta(pos)
+			local is_rm_sign = meta:get_int("random_messages") 
+			-- Was this sign place by the mod ?
+			if is_rm_sign and is_rm_sign == 1 then
+				--
+				-- Signs have a chance to disapear ...
+				--
+				-- Get config number, convert to a percentage 
+				local chances = random_messages.options.signs.abm_delete_signs_chance
+				if type(chances) ~= "number" then chances = 0.5
+				elseif chances > 1 then	chances = 1/chances end
+				local cpc = math.floor(chances * 100)
+				-- Chance is matched
+				if ( math.random(0,100) < cpc ) then 
+					-- Delete the sign
+					minetest.set_node(pos,{name='air'})
+					return
+				end
+				--
+				-- Or text message is updated
+				--
+				-- Define message to display
+				local message_number = table.random(random_messages.messages)
+				local msg = random_messages.messages[message_number] or message_number
+				if not msg then return end
+				-- Update infotext 
+				meta:set_string("text",msg)
+				meta:set_string("infotext",msg) 
+			end	
+		end,
+	})
+	
 end
 
